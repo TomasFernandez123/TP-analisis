@@ -1,211 +1,216 @@
-TP IAD — Comparación Aglos 13 (Gran Córdoba) vs 32 (CABA) — 2016–2025
-📌 Objetivo
+# 🧮 TP IAD — Comparación Aglomerados 13 (Gran Córdoba) vs 32 (CABA) — 2016–2025
 
-Informe (6–10 páginas) con:
+## 📘 Descripción general
+Este proyecto forma parte del **Segundo Parcial** de la materia **Introducción al Análisis de Datos** (UTN FRA).
 
-Evolución de tasa de actividad, empleo y desocupación.
+El objetivo es analizar la evolución de las **tasas de actividad, empleo, desocupación e ingresos reales** de la población para los aglomerados **13 (Gran Córdoba)** y **32 (CABA)** durante el período **2016–2025**, utilizando los **microdatos de la EPH (INDEC)**.
 
-Ingresos con inflación considerada (P21 real como mínimo).
+---
 
-Gráficos y tablas comparando aglomerados 13 y 32.
+## 🧭 Estructura del proyecto
 
-(Plus para nota alta) Multivariado, modelo de imputación de no respuesta en ingresos y mapa.
-
-Fuente: EPH – INDEC (Personas), trimestres 2016–2025.
-
-🧭 Estructura de carpetas
 TP_IAD/
-  data/
-    raw/          # Microdatos EPH Personas tal como se descargan (2016–2025)
-    interim/      # Muestras/archivos intermedios (p.ej., 2024T3 aglo 13/32)
-    processed/    # Resultados tabulares listos para el informe (tasas, P21 real, etc.)
-  src/
-    00_setup.ipynb          # Lectura archivo de prueba (3T-2024), filtro aglo 13/32
-    <notebooks de trabajo>  # Cálculos de tasas, P21 real, multivariado, etc.
-  output/
-    tabla_comparativa_anual_2016_2025_aglo13_32.csv
-    graf_actividad_anual_13_32.png
-    graf_empleo_anual_13_32.png
-    graf_desocupacion_anual_13_32.png
-    informe_TP_IAD.ipynb    # (opcional) plantilla para exportar a PDF
+├── data/
+│ ├── raw/ # Microdatos EPH Personas (2016–2025)
+│ ├── interim/ # Muestras filtradas o intermedias
+│ └── processed/ # Resultados listos para el informe
+├── src/
+│ ├── 00_setup.ipynb # Prueba inicial (lectura, filtros, muestra 2024T3)
+│ ├── tasas.ipynb # Cálculo tasas actividad, empleo, desocupación
+│ ├── ingresos.ipynb # (Próximo) Deflactación P21 y análisis ingresos reales
+│ ├── multivariado.ipynb # (Próximo) Cortes por sexo, edad, educación
+│ └── imputacion.ipynb # (Próximo) Modelo de imputación y diagnóstico
+├── output/
+│ ├── tabla_comparativa_anual_2016_2025_aglo13_32.csv
+│ ├── graf_actividad_anual_13_32.png
+│ ├── graf_empleo_anual_13_32.png
+│ ├── graf_desocupacion_anual_13_32.png
+│ └── informe_TP_IAD.ipynb # (opcional) plantilla exportable a PDF
+└── README.md
 
+yaml
+Copiar código
 
-Importante: Evitar rutas duplicadas tipo data/raw/data/raw. Si pasa, corregir moviendo los archivos a data/raw/ real.
+---
 
-🛠️ Requisitos (mínimos)
+## ⚙️ Requisitos
 
-Python 3.10+
+- **Python 3.10+**
+- Librerías:
+  ```bash
+  pip install pandas numpy matplotlib
+  # Opcional para Parquet:
+  pip install pyarrow  # o fastparquet
+Editor: VS Code o Jupyter Lab
 
-Paquetes:
+📥 Descarga de datos
+Acceder a EPH - Microdatos (INDEC)
 
-pandas, numpy, matplotlib
+Descargar los microdatos de Personas (base individual) de los 4 trimestres por año (2016–2025).
 
-(Opcional) pyarrow o fastparquet si guardamos Parquet
+Guardarlos tal cual vienen en data/raw/.
 
-Editor: Jupyter/VS Code
+⚠️ No es necesario descargar la base Hogares (solo se usa más adelante si se analiza IPCF).
 
-Instalación rápida:
+▶️ Flujo de trabajo
+1️⃣ Lectura inicial (00_setup.ipynb)
+Carga un archivo de prueba (ejemplo: 3T-2024)
 
-pip install pandas numpy matplotlib
-# Opcional parquet
-pip install pyarrow    # o: pip install fastparquet
+Normaliza columnas a mayúsculas
 
-🔽 Descarga de datos (equipo)
+Filtra los aglomerados 13 y 32
 
-Ir a INDEC → EPH → Microdatos Personas (2016–2025).
+Guarda un .csv.gz intermedio en data/interim/
 
-Descargar los 4 trimestres por año (base Personas) y guardarlos sin renombrar en data/raw/.
+2️⃣ Cálculo de tasas (tasas.ipynb)
+Lee todos los archivos de data/raw/
 
-No bajar base Hogares por ahora (se usa más adelante para IPCF si aplica).
+Base poblacional: personas de 10 años o más
 
-Los nombres pueden variar (usu_individual_Txyz.txt, etc.). El pipeline detecta patrones como individu, person, usu_individual, personas.
+Ponderador: PONDERA
 
-▶️ Flujo de trabajo (resumen)
+Calcula:
 
-Prueba de lectura (una muestra):
+Tasa de actividad = (ocupados + desocupados) / población 10+
 
-Abrir src/00_setup.ipynb.
+Tasa de empleo = ocupados / población 10+
 
-Cargar un archivo de 3T-2024 desde data/raw/.
+Tasa de desocupación = desocupados / fuerza laboral
 
-Normalizar columnas a mayúsculas y filtrar aglo 13 y 32.
+Agregado anual ponderado
 
-Guardar intermedio en data/interim/ (*.csv.gz si no hay engine Parquet).
+Resultados:
 
-Tasas (actividad, empleo, desocupación):
-
-Notebook de tasas: lee todos los data/raw/, filtra 13/32.
-
-Base: población 10+ años (excluye ESTADO=4).
-
-Ponderador: PONDERA.
-
-Calcula trimestral y agrega anual ponderado (promedio ponderado por población 10+ trimestral).
-
-Guarda:
-
+bash
+Copiar código
 data/processed/tasas_trimestrales_2016_2025_aglo13_32.csv
-
 data/processed/tasas_anuales_2016_2025_aglo13_32.csv
+Figuras generadas:
 
-Figuras y tabla comparativa (para el informe):
+bash
+Copiar código
+output/graf_actividad_anual_13_32.png
+output/graf_empleo_anual_13_32.png
+output/graf_desocupacion_anual_13_32.png
+3️⃣ Análisis de ingresos reales (ingresos.ipynb)
+Une P21 con serie IPC (base diciembre por año)
 
-Generar en output/:
+Calcula P21_real
 
-tabla_comparativa_anual_2016_2025_aglo13_32.csv
+Genera tabla anual por aglomerado:
 
-graf_actividad_anual_13_32.png
+Media, mediana, P25–P75 (IQR), D1, D5, D9
 
-graf_empleo_anual_13_32.png
+Gráfico: evolución de mediana P21 real (13 vs 32)
 
-graf_desocupacion_anual_13_32.png
+4️⃣ Análisis multivariado (multivariado.ipynb)
+Cortes sugeridos:
 
-Ingresos P21 real (próximo paso del equipo):
+Sexo (CH04)
 
-Unir con IPC (base diciembre por año o base única si lo pide el profe).
+Edad (CH06, agrupada)
 
-Calcular P21_real.
+Nivel educativo (NIVEL_ED)
 
-Tabla anual por aglo (media, mediana, P25–P75, deciles).
+(Opcional) Rama (PP04B_COD) y Ocupación (PP04D_COD)
 
-Gráfico: mediana P21 real 13 vs 32.
+Gráficos de barras y boxplots comparativos
 
-Multivariado (para nota alta):
+5️⃣ Modelo de imputación (imputacion.ipynb)
+Modelo para no respuesta de P21
 
-Cortes por sexo (CH04), edad (grupos a definir), nivel educativo (NIVEL_ED).
+Usar regresión lineal o árbol de decisión
 
-Opcional: rama (PP04B_COD) y ocupación (PP04D_COD).
+Variables predictoras: edad, sexo, educación, condición laboral, aglomerado
 
-Modelo de imputación (nota 9–10):
+Reportar:
 
-Regresión sobre log(P21) para no respuesta (o árbol).
+R² / MAE
 
-Reportar R²/MAE, diagnóstico breve y variables más influyentes.
+Diagnóstico de residuos
 
-Mapa (opcional + puntos):
+Variables con mayor influencia
 
-Mapa simple (por 2–3 años) con tasa de desocupación o mediana P21 real por aglo (en nuestro caso 13 vs 32, sirve igual como evidencia geográfica).
+6️⃣ Informe final
+Documento PDF (6–10 páginas) con:
 
-🧪 Validaciones clave
+Introducción y objetivos
 
-ESTADO:
+Metodología
 
-1 Ocupado, 2 Desocupado, 3 Inactivo, 4 <10 años, 0/NA No respuesta.
+Resultados de tasas (tabla + gráficos)
 
-Base de tasas = 10+ años (excluye 4).
+Resultados de ingresos reales (tabla + gráfico)
 
-Tasas:
+Análisis multivariado
 
-Actividad = (1 + 2) / 10+
+Modelo de imputación (si aplica)
 
-Empleo = 1 / 10+
+Conclusiones
 
-Desocupación = 2 / (1 + 2)
+Anexo técnico (supuestos, fuentes, ponderadores, código)
 
-Agregado anual: promedio ponderado por población 10+ del trimestre.
+🧩 Validaciones clave
+Variable	Descripción	Notas
+ESTADO	Condición de actividad (1=Ocupado, 2=Desocupado, 3=Inactivo, 4=<10 años)	Excluir 4
+PONDERA	Ponderador individual	Para tasas
+P21	Ingreso de ocupación principal	Para ingresos reales
+AGLOMERADO	13 = Gran Córdoba, 32 = CABA	Claves del análisis
 
-Ponderador: PONDERA (para tasas); para ingresos se usan los ponderadores específicos si la cátedra lo exige (más adelante).
+🧠 Base: población de 10 años y más
+🧮 Agregado anual: promedio ponderado por población 10+ del trimestre
 
-🙋 Roles sugeridos (reparto ágil)
+📊 Entregables esperados
+ Tabla comparativa anual de tasas
 
-Tomas: pipeline de tasas + gráficos, armado de tabla comparativa.
+ 3 gráficos (actividad, empleo, desocupación)
 
-Agustín: ingresos P21 real (deflactación + tabla/figura) y multivariado (sexo/edad/educación).
+ Tabla de ingresos reales P21
 
-Mariano: modelo de imputación + mapa y editor del PDF (estructura, pies de figura y conclusiones).
+ Gráfico de mediana P21 real
 
-(Roles intercambiables según disponibilidad.)
+ Gráficos multivariados
 
-📝 Entregable (PDF)
+ Modelo de imputación
 
-Secciones mínimas:
+ Mapa georreferenciado
 
-Introducción (qué, por qué, fuente EPH).
+ Informe PDF final
 
-Metodología (población 10+, PONDERA, fórmulas de tasas, agregado anual, criterio de deflactación).
+👥 Equipo
+Integrante	Rol
+Tomás Fernández	Pipeline de tasas, estructura del proyecto, coordinación
+Agustín González	Ingresos P21 real, análisis multivariado
+Mariano Pastor	Modelo de imputación, mapa y redacción final PDF
 
-Resultados — Tasas (tabla comparativa + 3 figuras + 4–6 bullets).
+🗺️ Roadmap
+ Limpieza y filtrado inicial (3T-2024)
 
-Resultados — Ingresos P21 real (tabla + 1 figura + lectura).
+ Cálculo de tasas y comparación anual
 
-Multivariado (cortes y hallazgos).
+ Ingresos P21 real (deflactación + tabla + figura)
 
-(Opcional) Modelo de imputación (métrica + interpretación).
+ Análisis multivariado
 
-(Opcional) Mapa.
+ Imputación de no respuesta
 
-Conclusiones (5 bullets).
+ Mapas y pulido del informe
 
-Anexo técnico (detalle de variables usadas, supuestos, links a fuentes).
+💡 Consejos
+Usar siempre nombres de columnas en mayúsculas.
 
-🧩 Tips y problemas comunes
+No incluir microdatos originales en repos públicos (peso + licencia).
 
-Ruta duplicada data/raw/data/raw: mover archivos a data/raw/ real y reintentar.
+Documentar supuestos: base 10+, IPC base diciembre, ponderador.
 
-Parquet falla: usar CSV comprimido (to_csv(..., compression="gzip")) o instalar pyarrow/fastparquet.
+Pies de figura y tabla:
 
-Encoding: EPH suele venir latin-1 y separador ;.
+Fuente: EPH-INDEC. Elaboración propia.
 
-Columnas cambiantes (177 vs 235): no pasa nada; usamos columnas mínimas comunes.
+📚 Referencias
+INDEC – EPH Microdatos
 
-🔒 Buenas prácticas
+Diseño de Registro EPH (2024)
 
-No commitear microdatos al repo público (peso/licencias).
-
-Sí commitear código/notebooks y archivos generados pequeños (output/, processed/ si son livianos).
-
-Documentar supuestos (base 10+, IPC base diciembre, etc.).
-
-Pies de figura/tabla: “Fuente: EPH-INDEC. Elaboración propia.”
-
-🗺️ Roadmap (lo que falta)
-
- P21 real (deflactación + tabla y mediana anual por aglo).
-
- Multivariado (sexo/edad/educación; opcional rama/ocupación).
-
- Modelo de imputación y diagnóstico.
-
- Mapa (si hay tiempo).
-
- Redacción final y exportar PDF.
+Última actualización: noviembre 2025
+Cátedra: Luis Fernández – UTN FRA, División 141
